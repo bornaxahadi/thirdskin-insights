@@ -130,10 +130,76 @@ h2{font-weight:700;font-size:25px;line-height:1.1;letter-spacing:.02em;margin:32
 .lk{display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink);font-weight:600;font-size:14px}
 .lk svg{width:18px;height:18px;color:var(--acc);flex:none}
 footer{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;line-height:1.6}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ===== v3 modern visuals ===== */
+body{position:relative;overflow-x:hidden}
+.aurora{position:fixed;inset:-20vmax;z-index:-1;pointer-events:none;filter:blur(70px);opacity:.55}
+.aurora i{position:absolute;width:55vmax;height:55vmax;border-radius:50%;mix-blend-mode:normal;animation:drift 26s ease-in-out infinite alternate}
+.aurora i:nth-child(1){left:0;top:0;background:radial-gradient(circle,color-mix(in srgb,var(--acc) 45%,transparent),transparent 65%)}
+.aurora i:nth-child(2){right:0;top:20%;background:radial-gradient(circle,color-mix(in srgb,var(--acc2) 38%,transparent),transparent 65%);animation-duration:32s;animation-delay:-8s}
+.aurora i:nth-child(3){left:25%;bottom:0;background:radial-gradient(circle,color-mix(in srgb,var(--acc3) 32%,transparent),transparent 65%);animation-duration:38s;animation-delay:-14s}
+[data-theme="light"] .aurora{opacity:.35}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(8vmax,6vmax) scale(1.15)}100%{transform:translate(-6vmax,10vmax) scale(.95)}}
+.card{background:color-mix(in srgb,var(--paper) 78%,transparent);backdrop-filter:blur(18px) saturate(140%);-webkit-backdrop-filter:blur(18px) saturate(140%);border:1px solid color-mix(in srgb,var(--line) 70%,transparent);border-radius:22px;box-shadow:0 1px 0 rgba(255,255,255,.06) inset,0 18px 40px -28px rgba(0,0,0,.45);position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:linear-gradient(140deg,color-mix(in srgb,var(--acc) 55%,transparent),transparent 35%,transparent 70%,color-mix(in srgb,var(--acc2) 45%,transparent));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7}
+@media(hover:hover){.card{transition:transform .35s cubic-bezier(.2,.7,.2,1),box-shadow .35s,background .35s}.card:hover{transform:translateY(-3px);box-shadow:0 26px 50px -30px var(--neon-a)}}
+.rv{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+h2{display:flex;align-items:center;gap:10px}
+h2::before{content:"";width:6px;height:22px;border-radius:3px;background:linear-gradient(var(--acc),var(--acc2));box-shadow:0 0 14px var(--neon-a)}
+/* live hero */
+.live{border-radius:26px;padding:22px;isolation:isolate}
+.live .radar{position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 290deg,var(--neon-a) 340deg,var(--neon) 360deg);opacity:.45;animation:sweep 6s linear infinite;-webkit-mask:radial-gradient(circle,transparent 30%,#000 31%);mask:radial-gradient(circle,transparent 30%,#000 31%);z-index:0}
+.live .rings{position:absolute;right:-70px;top:-70px;width:260px;height:260px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 31px,rgba(255,255,255,.08) 31px 32px);z-index:0}
+@keyframes sweep{to{transform:rotate(360deg)}}
+.live-top,.live-row{position:relative;z-index:1}
+.live-num{font-size:96px;background:linear-gradient(180deg,#fff 30%,var(--neon));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lm{position:relative;overflow:hidden;backdrop-filter:blur(6px)}
+.lm svg{position:absolute;left:0;right:0;bottom:0;width:100%;height:26px;opacity:.55}
+.lm b,.lm span{position:relative}
+/* KPI */
+.kpi{padding-bottom:44px}
+.kpi .spk{position:absolute;left:0;right:0;bottom:0;height:40px;width:100%}
+.kpi .v{background:linear-gradient(90deg,var(--ink),color-mix(in srgb,var(--ink) 60%,var(--acc)));-webkit-background-clip:text;background-clip:text;color:transparent}
+/* bars */
+.bar .t{height:10px;border-radius:6px;position:relative;overflow:visible}
+.bar .t i{border-radius:6px;position:relative;box-shadow:0 0 14px -2px var(--bc,var(--acc))}
+.bar .t i::after{content:"";position:absolute;right:-2px;top:50%;width:12px;height:12px;border-radius:50%;transform:translateY(-50%);background:#fff;box-shadow:0 0 0 3px var(--bc,var(--acc)),0 0 14px var(--bc,var(--acc))}
+.bar .t i::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);background-size:40% 100%;background-repeat:no-repeat;animation:shine 3.2s ease-in-out infinite}
+@keyframes shine{0%{background-position:-60% 0}60%,100%{background-position:160% 0}}
+.rk{display:inline-grid;place-items:center;min-width:22px;height:22px;border-radius:7px;font:700 12px/1 "Rajdhani",sans-serif;background:var(--chip);color:var(--muted);flex:none}
+.bar:first-child .rk{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff}
+/* chart */
+.chart{border-radius:24px;padding:16px 16px 12px;overflow:hidden;box-shadow:0 24px 50px -30px rgba(0,0,0,.8)}
+.chart::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 1px,transparent 1px 40px);pointer-events:none}
+.ch-plot{height:200px}
+.ch-plot .draw{stroke-dasharray:3000;stroke-dashoffset:3000;animation:draw 2.2s cubic-bezier(.4,.1,.2,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.ch-plot .area{opacity:0;animation:fadein 1.2s .9s forwards}@keyframes fadein{to{opacity:1}}
+.ch-dot{position:absolute;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px var(--neon-a),0 0 18px var(--neon);pointer-events:none}
+.ch-dot.last::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--neon);animation:ping 1.8s ease-out infinite}
+@keyframes ping{from{transform:scale(.4);opacity:1}to{transform:scale(1.6);opacity:0}}
+/* radial hours */
+.clock{display:flex;align-items:center;gap:18px;flex-wrap:wrap;justify-content:center}
+.clock svg{width:min(260px,100%);height:auto;flex:none}
+.clock .cl-side{display:grid;gap:10px;min-width:150px}
+.clock .cl-side b{display:block;font:700 30px/1 "Rajdhani",sans-serif}
+.clock .cl-side span{font-size:12.5px;color:var(--ink2)}
+.wedge{transform-origin:130px 130px;transform:scale(0);transition:transform .9s cubic-bezier(.2,.8,.2,1)}
+.in .wedge{transform:scale(1)}
+/* donut */
+.donut svg{width:140px;height:140px}
+.donut .arc{stroke-dasharray:var(--len) 999;stroke-dashoffset:var(--len);animation:arc 1.4s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes arc{to{stroke-dashoffset:0}}
+.act .ic{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 30%,transparent),color-mix(in srgb,var(--acc2) 22%,transparent));box-shadow:0 8px 20px -10px var(--neon-a)}
+.soc .card{padding-bottom:50px}
+.soc .ring{position:absolute;right:14px;top:14px;width:54px;height:54px}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}.wedge{transform:none}.ch-plot .draw{stroke-dashoffset:0}.ch-plot .area{opacity:1}.donut .arc{stroke-dashoffset:0}}
 </style>
 </head>
 <body>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
 <header><div class="wrap">
   <div class="hrow">
     <a class="brand" href="https://thirdskin.online/" target="_blank" rel="noopener"><img src="icon.svg" alt=""><span><b>Third Skin</b><small>Insights</small></span></a>
@@ -143,7 +209,7 @@ footer{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;line-
 </div></header>
 
 <main class="wrap">
-  <section class="live">
+  <section class="live"><span class="rings" aria-hidden="true"></span><span class="radar" aria-hidden="true"></span>
     <div class="live-top"><span><span class="dot"></span>Live · last 30 minutes</span><span id="liveTime"></span></div>
     <div class="live-row"><div class="live-num" id="liveNum">–</div><div class="live-cap">people on<br>thirdskin.online<br>right now</div></div>
     <div class="live-mini"><div class="lm"><b id="lmToday">–</b><span>visitors today</span></div><div class="lm"><b id="lm7">–</b><span>last 7 days</span></div><div class="lm"><b id="lm30">–</b><span>last 30 days</span></div></div>
@@ -189,8 +255,8 @@ footer{margin-top:30px;color:var(--muted);font-size:12px;text-align:center;line-
   <div class="grid two"><div class="card"><h3>Devices</h3><div class="donut" id="devices"></div></div><div class="card"><h3>New vs returning</h3><div class="bars" id="newret"></div></div></div>
 
   <h2>Best hours</h2>
-  <p class="sub">Visitors by hour, Dubai time (last 30 days). Post on Instagram just before the peak.</p>
-  <div class="card"><div class="hours" id="hours"></div><div class="hrs-ax"><span>00</span><span>06</span><span>12</span><span>18</span><span>23</span></div></div>
+  <p class="sub">A 24-hour clock of visitors, Dubai time (last 30 days). Post on Instagram just before the peak.</p>
+  <div class="card"><div class="clock" id="hours"></div></div>
 
   <h2>Social reach</h2>
   <p class="sub" id="socAsOf">From Meta dashboards.</p>
@@ -233,6 +299,17 @@ const EVT = [
   ['language_switch', 'Language changes', '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9"/>'],
   ['scroll', 'Read to the end', '<path d="M12 4v16m-5-5 5 5 5-5"/>'],
 ];
+
+const cssv = k => getComputedStyle(document.documentElement).getPropertyValue(k).trim();
+function countUp(el, to, f = fmt) { if (to == null || isNaN(to)) { el.textContent = '–'; return; } const from = +(el.dataset.v || 0), t0 = performance.now(), d = 1100; el.dataset.v = to;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = f(to); return; }
+  const step = t => { const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3); el.textContent = f(Math.round(from + (to - from) * e)); if (k < 1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+function spark(vals, color, h = 40) { if (!vals || vals.length < 2) return ''; const W = 200, mx = Math.max(...vals, 1), pts = vals.map((v, i) => [W * i / (vals.length - 1), h - 4 - (h - 10) * v / mx]);
+  let d = `M${pts[0][0]} ${pts[0][1]}`; for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], c = (x0 + x1) / 2; d += ` C${c} ${y0} ${c} ${y1} ${x1} ${y1}`; }
+  const id = 'sg' + Math.random().toString(36).slice(2, 7);
+  return `<svg class="spk" viewBox="0 0 ${W} ${h}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${color}" stop-opacity=".35"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${d} L${W} ${h} L0 ${h}Z" fill="url(#${id})"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`; }
+const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: 0, rootMargin: '0px 0px -40px 0px' });
+const reveal = () => document.querySelectorAll('main .card, main .chart').forEach(n => { if (!n.classList.contains('rv')) { n.classList.add('rv'); io.observe(n); } });
 let DATA = null, P = 'd30';
 try { P = localStorage.getItem('tsi-period') || 'd30'; } catch (e) {}
 
@@ -250,14 +327,14 @@ const pct = (a, b) => (!b ? null : Math.round((a - b) / b * 100));
 function bars(sel, rows, val, label, color, limit = 8, share = true) {
   const el = $(sel); if (!rows || !rows.length) { el.innerHTML = '<div class="empty">No data yet for this period.</div>'; return; }
   const max = Math.max(...rows.map(r => +r[val] || 0)) || 1, tot = rows.reduce((a, r) => a + (+r[val] || 0), 0) || 1;
-  const draw = n => { el.innerHTML = rows.slice(0, n).map(r => `<div class="bar"><span class="n">${label(r)}</span><span class="c">${fmt(r[val])}${share ? `<small>${Math.round(+r[val] / tot * 100)}%</small>` : ''}</span><span class="t"><i style="background:${color}" data-w="${(+r[val] / max * 100).toFixed(1)}"></i></span></div>`).join('') + (rows.length > n ? `<button class="more" type="button">Show all ${rows.length}</button>` : '');
+  const draw = n => { el.innerHTML = rows.slice(0, n).map(r => `<div class="bar"><span class="n"><span class="rk">${rows.indexOf(r) + 1}</span>${label(r)}</span><span class="c">${fmt(r[val])}${share ? `<small>${Math.round(+r[val] / tot * 100)}%</small>` : ''}</span><span class="t"><i style="--bc:${color};background:linear-gradient(90deg,color-mix(in srgb,${color} 35%,transparent),${color})" data-w="${(+r[val] / max * 100).toFixed(1)}"></i></span></div>`).join('') + (rows.length > n ? `<button class="more" type="button">Show all ${rows.length}</button>` : '');
     requestAnimationFrame(() => el.querySelectorAll('i[data-w]').forEach(i => i.style.width = i.dataset.w + '%'));
     const m = el.querySelector('.more'); if (m) m.onclick = () => draw(rows.length); };
   draw(limit);
 }
 
 function lineChart(rows) {
-  const plot = $('#plot'); plot.querySelectorAll('svg,.ch-empty').forEach(n => n.remove());
+  const plot = $('#plot'); plot.querySelectorAll('svg,.ch-empty,.ch-dot').forEach(n => n.remove());
   if (!rows || !rows.length) { plot.insertAdjacentHTML('beforeend', '<div class="ch-empty">No visits recorded yet.</div>'); $('#dayTotal').textContent = ''; $('#ax0').textContent = $('#ax1').textContent = ''; return; }
   if (rows.length < 3) {   // first days: show simple glowing columns until there is enough history for a line
     const nn = getComputedStyle(document.documentElement).getPropertyValue('--neon').trim(), mx = Math.max(...rows.map(r => +r.activeUsers || 0), 1);
@@ -270,7 +347,9 @@ function lineChart(rows) {
   const pts = ys.map((v, i) => [x(i), y(v)]);
   let d = `M${pts[0][0]} ${pts[0][1]}`; for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], cx = (x0 + x1) / 2; d += ` C${cx} ${y0} ${cx} ${y1} ${x1} ${y1}`; }
   const grid = [.25, .5, .75].map(f => `<path d="M0 ${10 + (H - 30) * f} H${W}" stroke="rgba(255,255,255,.07)" stroke-dasharray="2 5"/>`).join('');
-  plot.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${neon}" stop-opacity=".35"/><stop offset="1" stop-color="${neon}" stop-opacity="0"/></linearGradient></defs>${grid}<path d="${d} L${pts.at(-1)[0]} ${H} L${pts[0][0]} ${H}Z" fill="url(#g)"/><path d="${d}" fill="none" stroke="${neon}" stroke-width="7" opacity=".15" vector-effect="non-scaling-stroke"/><path d="${d}" fill="none" stroke="${neon}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round"/><line id="cross" x1="0" x2="0" y1="0" y2="${H}" stroke="rgba(255,255,255,.35)" vector-effect="non-scaling-stroke" opacity="0"/></svg>`);
+  plot.insertAdjacentHTML('afterbegin', `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${neon}" stop-opacity=".45"/><stop offset="1" stop-color="${neon}" stop-opacity="0"/></linearGradient><linearGradient id="gs" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${cssv('--acc2')}"/><stop offset=".5" stop-color="${neon}"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>${grid}<path class="area" d="${d} L${pts.at(-1)[0]} ${H} L${pts[0][0]} ${H}Z" fill="url(#g)"/><path class="draw" d="${d}" fill="none" stroke="${neon}" stroke-width="10" opacity=".18" vector-effect="non-scaling-stroke"/><path class="draw" d="${d}" fill="none" stroke="url(#gs)" stroke-width="3" vector-effect="non-scaling-stroke" stroke-linecap="round"/><line id="cross" x1="0" x2="0" y1="0" y2="${H}" stroke="rgba(255,255,255,.35)" vector-effect="non-scaling-stroke" opacity="0"/></svg>`);
+  plot.querySelectorAll('.ch-dot').forEach(n => n.remove());
+  { const im = ys.indexOf(Math.max(...ys)); [[im, ''], [ys.length - 1, ' last']].forEach(([i, c]) => plot.insertAdjacentHTML('beforeend', `<span class="ch-dot${c}" style="left:${pts[i][0] / W * 100}%;top:${pts[i][1] / H * 100}%"></span>`)); }
   const lab = s => new Date(s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   $('#ax0').textContent = lab(rows[0].date); $('#ax1').textContent = lab(rows.at(-1).date);
   $('#dayTotal').textContent = fmt(ys.reduce((a, b) => a + b, 0)) + ' total';
@@ -280,15 +359,26 @@ function lineChart(rows) {
   plot.onpointermove = move; plot.ontouchmove = move; plot.onpointerleave = () => { tip.style.opacity = 0; cross.setAttribute('opacity', 0); };
 }
 
+function clock(hours) {
+  const H = Array(24).fill(0); (hours || []).forEach(r => H[+r.hour] = +r.activeUsers || 0); const hm = Math.max(...H, 1), pk = H.indexOf(Math.max(...H)), tot = H.reduce((a, b) => a + b, 0);
+  const c = 130, r0 = 46, r1 = 118, A = i => (i / 24) * 2 * Math.PI - Math.PI / 2, P2 = (a, r) => [c + r * Math.cos(a), c + r * Math.sin(a)];
+  let w = ''; H.forEach((v, i) => { const rr = r0 + 6 + (r1 - r0 - 6) * (v / hm), a0 = A(i) + .03, a1 = A(i + 1) - .03, [x0, y0] = P2(a0, r0), [x1, y1] = P2(a0, rr), [x2, y2] = P2(a1, rr), [x3, y3] = P2(a1, r0);
+    w += `<path class="wedge" style="transition-delay:${i * 30}ms" d="M${x0} ${y0} L${x1} ${y1} A${rr} ${rr} 0 0 1 ${x2} ${y2} L${x3} ${y3} A${r0} ${r0} 0 0 0 ${x0} ${y0}Z" fill="${i === pk && v ? 'url(#hk)' : 'url(#hw)'}" opacity="${v ? .35 + .65 * v / hm : .18}"><title>${String(i).padStart(2, '0')}:00 · ${v} visitors</title></path>`; });
+  const ticks = [0, 6, 12, 18].map(h => { const [x, y] = P2(A(h), r1 + 10); return `<text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" fill="currentColor" opacity=".55">${String(h).padStart(2, '0')}</text>`; }).join('');
+  const rings = [.33, .66, 1].map(f => `<circle cx="${c}" cy="${c}" r="${r0 + (r1 - r0) * f}" fill="none" stroke="currentColor" stroke-opacity=".08" stroke-dasharray="2 4"/>`).join('');
+  $('#hours').innerHTML = `<svg viewBox="-6 -6 272 272" role="img" aria-label="Visitors by hour"><defs><linearGradient id="hw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${cssv('--acc')}"/><stop offset="1" stop-color="${cssv('--acc4')}"/></linearGradient><linearGradient id="hk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${cssv('--acc2')}"/><stop offset="1" stop-color="${cssv('--acc3')}"/></linearGradient></defs>${rings}${w}${ticks}<circle cx="${c}" cy="${c}" r="${r0 - 6}" fill="var(--paper)" stroke="currentColor" stroke-opacity=".1"/><text x="${c}" y="${c + 2}" text-anchor="middle" font-family="Rajdhani,sans-serif" font-weight="700" font-size="26" fill="currentColor">${tot ? String(pk).padStart(2, '0') + ':00' : '–'}</text><text x="${c}" y="${c + 18}" text-anchor="middle" font-size="9.5" letter-spacing="1.5" fill="currentColor" opacity=".55">PEAK HOUR</text></svg>
+  <div class="cl-side"><div><b>${tot ? String(pk).padStart(2, '0') + ':00–' + String((pk + 1) % 24).padStart(2, '0') + ':00' : '–'}</b><span>busiest hour</span></div><div><b>${tot ? String((pk + 23) % 24).padStart(2, '0') + ':30' : '–'}</b><span>best time to post</span></div><div><b>${fmt(tot)}</b><span>visitors counted</span></div></div>`;
+}
+
 function donut(rows) {
   const el = $('#devices'), css = getComputedStyle(document.documentElement), C = { mobile: css.getPropertyValue('--acc').trim(), desktop: css.getPropertyValue('--acc2').trim(), tablet: css.getPropertyValue('--acc3').trim() };
   if (!rows || !rows.length) { el.innerHTML = '<div class="empty">No data yet for this period.</div>'; return; }
   const tot = rows.reduce((a, r) => a + (+r.activeUsers || 0), 0) || 1; let a0 = -Math.PI / 2, arcs = '';
   rows.forEach(r => { const f = (+r.activeUsers || 0) / tot, a1 = a0 + f * 2 * Math.PI - (rows.length > 1 ? .05 : 0), lg = f > .5 ? 1 : 0;
     const p = a => [60 + 52 * Math.cos(a), 60 + 52 * Math.sin(a)]; const [x0, y0] = p(a0), [x1, y1] = p(a1);
-    arcs += f >= .999 ? `<circle cx="60" cy="60" r="52" fill="none" stroke="${C[r.deviceCategory] || '#999'}" stroke-width="14"/>` : `<path d="M${x0} ${y0} A52 52 0 ${lg} 1 ${x1} ${y1}" fill="none" stroke="${C[r.deviceCategory] || '#999'}" stroke-width="14" stroke-linecap="round"/>`; a0 += f * 2 * Math.PI; });
+    arcs += f >= .999 ? `<circle cx="60" cy="60" r="52" fill="none" stroke="${C[r.deviceCategory] || '#999'}" stroke-width="14"/>` : `<path class="arc" style="--len:${(52 * Math.abs(a1 - a0)).toFixed(1)}" d="M${x0} ${y0} A52 52 0 ${lg} 1 ${x1} ${y1}" fill="none" stroke="${C[r.deviceCategory] || '#999'}" stroke-width="14" stroke-linecap="round"/>`; a0 += f * 2 * Math.PI; });
   const top = rows[0], cap = s => s[0].toUpperCase() + s.slice(1);
-  el.innerHTML = `<svg viewBox="0 0 120 120">${arcs}<text x="60" y="62" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="28" font-weight="700" fill="currentColor">${Math.round((+top.activeUsers) / tot * 100)}%</text><text x="60" y="78" text-anchor="middle" font-size="10" fill="currentColor" opacity=".6">${esc(top.deviceCategory)}</text></svg><div class="legend">${rows.map(r => `<span><i style="background:${C[r.deviceCategory] || '#999'}"></i>${esc(cap(r.deviceCategory))} · <b>${Math.round((+r.activeUsers) / tot * 100)}%</b> (${fmt(r.activeUsers)})</span>`).join('')}</div>`;
+  el.innerHTML = `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="var(--track)" stroke-width="14"/>${arcs}<text x="60" y="62" text-anchor="middle" font-family="Rajdhani,sans-serif" font-size="28" font-weight="700" fill="currentColor">${Math.round((+top.activeUsers) / tot * 100)}%</text><text x="60" y="78" text-anchor="middle" font-size="10" fill="currentColor" opacity=".6">${esc(top.deviceCategory)}</text></svg><div class="legend">${rows.map(r => `<span><i style="background:${C[r.deviceCategory] || '#999'}"></i>${esc(cap(r.deviceCategory))} · <b>${Math.round((+r.activeUsers) / tot * 100)}%</b> (${fmt(r.activeUsers)})</span>`).join('')}</div>`;
 }
 
 const ICON = { ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 5 5 9-10"/></svg>', wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>', bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 6l12 12M18 6 6 18"/></svg>' };
@@ -302,7 +392,10 @@ function renderPeriod() {
   $('#ctrySub').textContent = 'Where visitors are · ' + PER[P][0].toLowerCase() + '.';
   $('#procNote').classList.toggle('on', !has);
   const K = [['activeUsers', 'Visitors'], ['newUsers', 'New visitors'], ['sessions', 'Visits'], ['screenPageViews', 'Page views'], ['engagementRate', 'Engaged visits', v => Math.round(v * 100) + '%'], ['averageSessionDuration', 'Avg. time on site', v => Math.floor(v / 60) + 'm ' + Math.round(v % 60) + 's'], ['eventCount', 'Interactions'], ['engagedSessions', 'Engaged sessions']];
-  $('#kpis').innerHTML = K.map(([k, l, f]) => { const v = t[k], c = pct(+v, +p[k]); const d = (c == null || !has) ? '' : `<span class="delta ${c > 0 ? 'up' : c < 0 ? 'down' : ''}">${c > 0 ? '▲' : c < 0 ? '▼' : '•'} ${Math.abs(c)}% <small>${PER[P][2]}</small></span>`; return `<div class="card kpi"><div class="l">${l}</div><div class="v">${v == null ? '–' : f ? f(+v) : fmt(v)}</div>${d}</div>`; }).join('');
+  $('#kpis').innerHTML = K.map(([k, l, f]) => { const v = t[k], c = pct(+v, +p[k]); const d = (c == null || !has) ? '' : `<span class="delta ${c > 0 ? 'up' : c < 0 ? 'down' : ''}">${c > 0 ? '▲' : c < 0 ? '▼' : '•'} ${Math.abs(c)}% <small>${PER[P][2]}</small></span>`; const sk = { activeUsers: 'activeUsers', sessions: 'sessions', screenPageViews: 'screenPageViews', newUsers: 'activeUsers', engagedSessions: 'sessions', eventCount: 'screenPageViews' }[k];
+    const days = (D.daily || []).slice(P === 'd7' ? -7 : P === 'today' ? -2 : -30), cols = [cssv('--acc'), cssv('--acc2'), cssv('--acc3'), cssv('--neon')];
+    return `<div class="card kpi"><div class="l">${l}</div><div class="v" data-k="${k}">${v == null ? '–' : f ? f(+v) : '0'}</div>${d}${sk ? spark(days.map(r => +r[sk] || 0), cols[K.findIndex(q => q[0] === k) % 4]) : ''}</div>`; }).join('');
+  K.forEach(([k, , f]) => { const el = $(`#kpis .v[data-k="${k}"]`); if (el && !f && t[k] != null) { el.dataset.v = 0; countUp(el, +t[k]); } });
   const rt = D.realtime || {}, live = (P === 'today' && !(per.countries || []).length);
   const ctry = live ? (rt.countries || []) : (per.countries || []);
   bars('#countries', ctry, 'activeUsers', r => `<span class="flag">${flag(r.countryId || NAME2CC[r.country])}</span>${esc(r.country || 'Location not detected yet')}`, 'var(--acc)', 10);
@@ -325,26 +418,29 @@ function renderPeriod() {
 function render(D) {
   DATA = D; $('#upd').textContent = 'Updated ' + ago(D.updated);
   const rt = D.realtime || {}, per = D.periods || {};
-  $('#liveNum').textContent = fmt(rt.active || 0);
+  countUp($('#liveNum'), +rt.active || 0);
   $('#liveTime').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' }) + ' Dubai';
   const tv = k => { const v = ((per[k] || {}).totals || {}).activeUsers; return v == null ? '–' : fmt(v); };
-  $('#lmToday').textContent = tv('today'); $('#lm7').textContent = tv('d7'); $('#lm30').textContent = tv('d30');
+  const tn = k => ((per[k] || {}).totals || {}).activeUsers; [['#lmToday', 'today'], ['#lm7', 'd7'], ['#lm30', 'd30']].forEach(([s, k]) => countUp($(s), tn(k) == null ? null : +tn(k)));
+  [['#lm7', -7], ['#lm30', -30]].forEach(([s, n]) => { const box = $(s).parentNode; box.querySelector('svg')?.remove(); box.insertAdjacentHTML('beforeend', spark((D.daily || []).slice(n).map(r => +r.activeUsers || 0), cssv('--neon'), 26)); });
   const tags = [...(rt.countries || []).map(r => `${flag(r.countryId || NAME2CC[r.country])} ${esc(r.country)} <b>${r.activeUsers}</b>`), ...(rt.cities || []).filter(r => r.city !== '(not set)').map(r => `📍 ${esc(r.city)} <b>${r.activeUsers}</b>`), ...(rt.devices || []).map(r => `${r.deviceCategory === 'mobile' ? '📱' : r.deviceCategory === 'desktop' ? '💻' : '📟'} ${esc(r.deviceCategory)} <b>${r.activeUsers}</b>`), ...(rt.events || []).filter(e => /lead|whatsapp|sign_up|media_kit/.test(e.eventName)).map(e => `⚡ ${esc(e.eventName.replace(/_/g, ' '))} <b>${e.eventCount}</b>`)];
   $('#liveTags').innerHTML = tags.length ? tags.map(t => `<span class="tag">${t}</span>`).join('') : '<span class="tag">Nobody on the site this minute</span>';
   renderPeriod();
   lineChart(D.daily);
-  const H = Array(24).fill(0); (D.hours || []).forEach(r => H[+r.hour] = +r.activeUsers); const hm = Math.max(...H, 1);
-  $('#hours').innerHTML = H.map((v, i) => `<i style="height:${Math.max(2, v / hm * 100)}%" title="${String(i).padStart(2, '0')}:00 · ${v} visitors"></i>`).join('');
+  clock(D.hours);
   const s = D.social || {};
   $('#socAsOf').textContent = 'From Meta professional dashboards · as of ' + (s.asOf || '');
   $('#social').innerHTML = `<div class="card"><h3>📸 Instagram</h3><div class="v">${short(s.ig || 0)}</div><div class="l">followers</div><div class="g">+${short(s.igGain30 || 0)} in 30 days</div><div class="l">${short(s.igViews30 || 0)} views / 30 days</div></div><div class="card"><h3>👍 Facebook</h3><div class="v">${short(s.fb || 0)}</div><div class="l">followers</div><div class="g">+${short(s.fbGain28 || 0)} in 28 days</div><div class="l">${short(s.fbViews28 || 0)} views / 28 days</div></div>`;
+  const ringSvg = (g, base, col) => { const f = Math.max(.04, Math.min(1, base ? g / base : 0)), L = 2 * Math.PI * 22; return `<svg class="ring" viewBox="0 0 54 54"><circle cx="27" cy="27" r="22" fill="none" stroke="var(--track)" stroke-width="6"/><circle cx="27" cy="27" r="22" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-dasharray="${(L * f).toFixed(1)} ${L.toFixed(1)}" transform="rotate(-90 27 27)"/><text x="27" y="31" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">+${Math.round(f * 100)}%</text></svg>`; };
+  const sc = $('#social').querySelectorAll('.card'); if (sc[0]) sc[0].insertAdjacentHTML('beforeend', ringSvg(s.igGain30 || 0, (s.ig || 0) - (s.igGain30 || 0), cssv('--acc2'))); if (sc[1]) sc[1].insertAdjacentHTML('beforeend', ringSvg(s.fbGain28 || 0, (s.fb || 0) - (s.fbGain28 || 0), cssv('--acc')));
   const site = D.site || {};
   $('#health').innerHTML = (site.checks || []).map(c => `<div class="row"><span>${esc((PAGE[c.path] || [0, c.path])[1])}</span><span>${c.status === 200 ? pill('ok', c.ms + ' ms') : pill('bad', 'Error ' + c.status)}</span></div>`).join('');
   $('#setup').innerHTML = (D.setup || []).map(x => `<div class="row"><span>${esc(x.name)}</span>${pill(x.state, esc(x.label))}</div>`).join('');
+  reveal();
 }
 
-$('#tabs').onclick = e => { const b = e.target.closest('button[data-p]'); if (!b) return; P = b.dataset.p; try { localStorage.setItem('tsi-period', P); } catch (er) {} renderPeriod(); };
-$('#themes').addEventListener('click', () => { if (DATA) { lineChart(DATA.daily); renderPeriod(); } });
+$('#tabs').onclick = e => { const b = e.target.closest('button[data-p]'); if (!b) return; P = b.dataset.p; try { localStorage.setItem('tsi-period', P); } catch (er) {} renderPeriod(); reveal(); };
+$('#themes').addEventListener('click', () => { if (DATA) render(DATA); });
 
 async function load() {
   const b = $('#ref'); b.classList.add('spin');
