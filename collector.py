@@ -157,6 +157,9 @@ def collect():
                 res[key] = [] if key[1] not in ("totals", "prev", "site", "social", "blog") else {}
     for k in PERIODS:
         data["periods"][k] = {name: res[(k, name)] for name in period_jobs(k, *PERIODS[k]).keys()}
+        for name in ("totals", "prev"):   # no visits yet in the period (e.g. just after midnight) = zeros, not blank
+            if not data["periods"][k][name]:
+                data["periods"][k][name] = {m: 0 for m in TOT}
     rt = {n: res[("rt", n)] for n in ("countries", "cities", "devices", "pages", "events")}
     rt["active"] = sum(r.get("activeUsers", 0) for r in rt["countries"])
     data["realtime"] = rt
