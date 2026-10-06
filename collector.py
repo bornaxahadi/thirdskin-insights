@@ -24,9 +24,11 @@ def _rows(d):
     return out
 
 
-def report(dims, mets, start="28daysAgo", end="today", limit=50, order=None):
+def report(dims, mets, start="28daysAgo", end="today", limit=50, order=None, flt=None):
     args = {"property": P, "dateRanges": [{"startDate": start, "endDate": end}],
             "dimensions": [{"name": d} for d in dims], "metrics": [{"name": m} for m in mets], "limit": limit}
+    if flt:
+        args["dimensionFilter"] = flt
     if order:
         args["orderBys"] = [{"desc": True, "metric": {"metricName": order}}]
     for _ in range(2):
@@ -105,6 +107,11 @@ def period_jobs(key, start, end, pstart, pend):
         "sources": (lambda: report(["sessionSource"], ["sessions"], start, end, order="sessions", limit=12)),
         "events": (lambda: report(["eventName"], ["eventCount"], start, end, order="eventCount", limit=40)),
         "newret": (lambda: report(["newVsReturning"], ["activeUsers"], start, end)),
+        # site map: which page sections people reached, per country (events sec_* sent by the website)
+        "sections": (lambda: report(["eventName", "countryId", "country"], ["totalUsers", "eventCount"], start, end, limit=500,
+                                    flt={"filter": {"fieldName": "eventName", "stringFilter": {"matchType": "BEGINS_WITH", "value": "sec_"}}})),
+        "pagesCountry": (lambda: report(["pagePath", "countryId", "country"], ["screenPageViews", "totalUsers"], start, end, order="screenPageViews", limit=300)),
+        "usersCountry": (lambda: report(["countryId", "country"], ["totalUsers"], start, end, order="totalUsers", limit=50)),
     }
 
 

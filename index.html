@@ -195,6 +195,28 @@ h2::before{content:"";width:6px;height:22px;border-radius:3px;background:linear-
 .soc .card{padding-bottom:50px}
 .soc .ring{position:absolute;right:14px;top:14px;width:54px;height:54px}
 
+
+/* site map */
+.cflt{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 0 14px;padding-bottom:2px}
+.cflt::-webkit-scrollbar{display:none}
+.cf{flex:none;display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:7px 11px;font:600 12.5px/1 "Space Grotesk",sans-serif;cursor:pointer}
+.cf[aria-pressed="true"]{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;border-color:transparent;box-shadow:0 6px 16px -8px var(--neon-a)}
+.smroot{display:flex;align-items:center;gap:10px;font:700 16px/1.2 "Rajdhani",sans-serif;letter-spacing:.04em;margin-bottom:6px}
+.smroot .gl{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;font-size:15px;box-shadow:0 0 18px var(--neon-a)}
+.smroot small{font:500 12px/1 "Space Grotesk",sans-serif;color:var(--muted);margin-inline-start:auto}
+.smap{position:relative;padding-inline-start:22px}
+.smap::before{content:"";position:absolute;inset-inline-start:14px;top:0;bottom:18px;width:2px;border-radius:2px;background:linear-gradient(var(--acc),var(--acc2) 60%,transparent)}
+.sn{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:9px 0 9px 14px}
+.sn::before{content:"";position:absolute;inset-inline-start:-8px;top:50%;width:18px;height:2px;background:color-mix(in srgb,var(--acc) 55%,transparent)}
+.sn .ico{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:14px;background:var(--chip);border:1px solid var(--line)}
+.sn .nm{font-weight:600;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sn .nm small{display:block;font-weight:500;font-size:11.5px;color:var(--muted)}
+.sn .pc{font:700 20px/1 "Rajdhani",sans-serif;text-align:end}
+.sn .pc small{display:block;font:500 11px/1.3 "Space Grotesk",sans-serif;color:var(--muted)}
+.sn .tr{grid-column:2/-1;height:6px;border-radius:4px;background:var(--track);overflow:hidden}
+.sn .tr i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 0 10px var(--neon-a);transition:width 1s cubic-bezier(.2,.7,.2,1)}
+.drop{display:inline-block;margin-inline-start:6px;padding:2px 7px;border-radius:999px;font:700 10.5px/1.4 "Space Grotesk",sans-serif;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);vertical-align:middle}
+
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}.wedge{transform:none}.ch-plot .draw{stroke-dashoffset:0}.ch-plot .area{opacity:1}.donut .arc{stroke-dashoffset:0}}
 </style>
 </head>
@@ -238,6 +260,12 @@ h2::before{content:"";width:6px;height:22px;border-radius:3px;background:linear-
   <h2>Languages</h2>
   <p class="sub">The language of the visitor's phone or computer, and which language page of the site they read.</p>
   <div class="grid two"><div class="card"><h3><span>Visitor language</span><span>Visitors</span></h3><div class="bars" id="languages"></div></div><div class="card"><h3><span>Site language read</span><span>Views</span></h3><div class="bars" id="pages"></div></div></div>
+
+  <h2>Site map</h2>
+  <p class="sub" id="smSub">Every part of thirdskin.online in page order, and how many visitors reached it. Tap a country to filter.</p>
+  <div class="cflt" id="smCountries" role="group" aria-label="Filter by country"></div>
+  <div class="grid two"><div class="card"><div class="smroot"><span class="gl">⌂</span>thirdskin.online<small id="smTotal"></small></div><div class="smap" id="smap"></div></div><div class="card"><h3><span>Language pages</span><span>Views</span></h3><div class="bars" id="smPages"></div></div></div>
+  <p class="note" id="smNote">Section tracking started on 6 Oct 2026. Google needs 24–48 hours to process it, so the percentages fill in from tomorrow.</p>
 
   <h2>Visitors per day</h2>
   <p class="sub">Last 45 days. Tap the chart for each day.</p>
@@ -384,6 +412,29 @@ function donut(rows) {
 const ICON = { ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="m5 12 5 5 9-10"/></svg>', wait: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></svg>', bad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M6 6l12 12M18 6 6 18"/></svg>' };
 const pill = (k, t) => `<span class="pill ${k}">${ICON[k]}${t}</span>`;
 
+
+const SECS = [['hero', 'Home · top of page', '🏠'], ['studio', 'Third Skin studio', '✦'], ['audience', 'Audience & reels', '🎞️'], ['about', 'About Farnaz', '👤'], ['transform', 'Before & after', '🪄'], ['learn', 'What she teaches', '🎓'], ['book', 'The book', '📖'], ['collab', 'Work with her', '🤝'], ['faq', 'Questions (FAQ)', '❓'], ['contact', 'Contact form', '✉️'], ['footer', 'End of page', '⤓']];
+let SMC = 'all';
+function siteMap(per) {
+  const uc = per.usersCountry || [], secs = per.sections || [], pc = per.pagesCountry || [];
+  const ctry = uc.filter(r => r.countryId && r.countryId !== '(not set)').slice(0, 8);
+  if (SMC !== 'all' && !ctry.some(r => r.countryId === SMC)) SMC = 'all';
+  $('#smCountries').innerHTML = `<button class="cf" type="button" data-c="all" aria-pressed="${SMC === 'all'}">🌍 All countries</button>` + ctry.map(r => `<button class="cf" type="button" data-c="${esc(r.countryId)}" aria-pressed="${SMC === r.countryId}">${flag(r.countryId)} ${esc(r.country)}</button>`).join('');
+  const inC = r => SMC === 'all' || r.countryId === SMC;
+  const denom = uc.filter(inC).reduce((a, r) => a + (+r.totalUsers || 0), 0);
+  const u = {}; secs.filter(inC).forEach(r => { const k = String(r.eventName).slice(4); u[k] = (u[k] || 0) + (+r.totalUsers || 0); });
+  const has = secs.length > 0, vals = SECS.map(([k]) => u[k] || 0);
+  let dropAt = -1, dropMax = 0; vals.forEach((v, i) => { if (i && vals[i - 1] - v > dropMax) { dropMax = vals[i - 1] - v; dropAt = i; } });
+  $('#smTotal').textContent = denom ? fmt(denom) + ' visitors' : '';
+  $('#smNote').classList.toggle('on', !has);
+  $('#smap').innerHTML = SECS.map(([k, l, ic], i) => { const v = vals[i], p = denom && has ? Math.min(100, Math.round(v / denom * 100)) : null;
+    return `<div class="sn"><span class="ico">${ic}</span><span class="nm">${esc(l)}<small>#${k}${i === dropAt && dropMax > 0 ? `<span class="drop">▼ biggest drop</span>` : ''}</small></span><span class="pc">${p == null ? '–' : p + '%'}<small>${p == null ? '' : fmt(v) + ' people'}</small></span><span class="tr"><i data-w="${p || 0}"></i></span></div>`; }).join('');
+  requestAnimationFrame(() => $('#smap').querySelectorAll('i[data-w]').forEach(i => i.style.width = i.dataset.w + '%'));
+  const pg = {}; pc.filter(inC).forEach(r => { const m = (r.pagePath || '/').match(/^\/(fa|ar|ru|es|it|zh|ja|de|fr|privacy)\//); const k = m ? '/' + m[1] + '/' : '/'; pg[k] = (pg[k] || 0) + (+r.screenPageViews || 0); });
+  bars('#smPages', Object.entries(pg).map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v), 'v', r => `<span class="flag">${(PAGE[r.k] || ['📄'])[0]}</span>${esc((PAGE[r.k] || [0, r.k])[1])}`, 'var(--acc2)', 11);
+}
+$('#smCountries').onclick = e => { const b = e.target.closest('.cf'); if (!b || !DATA) return; SMC = b.dataset.c; siteMap((DATA.periods || {})[P] || {}); };
+
 function renderPeriod() {
   const D = DATA; if (!D) return;
   document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.p === P));
@@ -409,6 +460,7 @@ function renderPeriod() {
   const ev = Object.fromEntries((per.events || []).map(e => [e.eventName, +e.eventCount]));
   if (P === 'today') (rt.events || []).forEach(e => { if (!(e.eventName in ev)) ev[e.eventName] = +e.eventCount; });
   $('#acts').innerHTML = EVT.map(([k, l, ic]) => `<div class="card act"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">${ic}</svg></span><span><div class="v">${fmt(ev[k] || 0)}</div><div class="l">${l}</div></span></div>`).join('');
+  siteMap(per);
   bars('#channels', per.channels, 'sessions', r => esc(r.sessionDefaultChannelGroup === 'Unassigned' ? 'Not identified yet' : r.sessionDefaultChannelGroup), 'var(--acc3)', 8);
   bars('#sources', per.sources, 'sessions', r => esc(r.sessionSource === '(direct)' ? 'Direct (typed / saved link)' : unk(r.sessionSource) ? 'Not identified yet' : r.sessionSource), 'var(--acc2)', 8);
   donut((per.devices && per.devices.length) ? per.devices : (live ? rt.devices : []));
@@ -444,7 +496,7 @@ $('#themes').addEventListener('click', () => { if (DATA) render(DATA); });
 
 async function load() {
   const b = $('#ref'); b.classList.add('spin');
-  try { const r = await fetch('data.json?t=' + Date.now(), { cache: 'no-store' }); render(await r.json()); }
+  try { const r = await fetch((location.search.includes('test') ? 'test-data.json' : 'data.json') + '?t=' + Date.now(), { cache: 'no-store' }); render(await r.json()); }
   catch (e) { $('#upd').textContent = 'Could not load data'; }
   finally { setTimeout(() => b.classList.remove('spin'), 500); }
 }
