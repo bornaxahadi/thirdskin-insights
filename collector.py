@@ -75,6 +75,20 @@ def site_health():
     return out
 
 
+def blog_ratings():
+    """Star ratings readers give on Style Journal posts (GA4 event blog_rating, value = 1..5)."""
+    rows = report(["pagePath"], ["eventValue", "eventCount"], "2026-10-01", "today", limit=500,
+                  flt={"filter": {"fieldName": "eventName", "stringFilter": {"matchType": "EXACT", "value": "blog_rating"}}})
+    out = {}
+    for r in rows:
+        m = re.match(r"^/blog/([^/]+)/", r.get("pagePath", ""))
+        if not m:
+            continue
+        o = out.setdefault(m.group(1), {"sum": 0, "count": 0})
+        o["sum"] += float(r.get("eventValue") or 0); o["count"] += int(r.get("eventCount") or 0)
+    return {k: {"avg": round(v["sum"] / v["count"], 2), "count": v["count"]} for k, v in out.items() if v["count"]}
+
+
 def social():
     try:
         js = requests.get(SITE + "app.js", timeout=30).text
@@ -130,6 +144,7 @@ def collect():
     jobs[("rt", "devices")] = lambda: realtime(["deviceCategory"])
     jobs[("rt", "pages")] = lambda: realtime(["unifiedScreenName"], ("activeUsers", "screenPageViews"))
     jobs[("rt", "events")] = lambda: realtime(["eventName"], ("eventCount",))
+    jobs[("x", "blog")] = blog_ratings
     jobs[("x", "site")] = site_health
     jobs[("x", "social")] = social
     with ThreadPoolExecutor(max_workers=10) as ex:
@@ -139,7 +154,7 @@ def collect():
             try:
                 res[key] = f.result(timeout=150)
             except Exception:
-                res[key] = [] if key[1] not in ("totals", "prev", "site", "social") else {}
+                res[key] = [] if key[1] not in ("totals", "prev", "site", "social", "blog") else {}
     for k in PERIODS:
         data["periods"][k] = {name: res[(k, name)] for name in period_jobs(k, *PERIODS[k]).keys()}
     rt = {n: res[("rt", n)] for n in ("countries", "cities", "devices", "pages", "events")}
@@ -147,6 +162,7 @@ def collect():
     data["realtime"] = rt
     data["daily"] = res[("x", "daily")]; data["hours"] = res[("x", "hours")]
     data["site"] = res[("x", "site")]; data["social"] = res[("x", "social")]
+    data["blog"] = res.get(("x", "blog")) or {}
     # backwards-compatible keys
     data["t28"] = data["periods"]["d30"]["totals"]
     site = data["site"]
