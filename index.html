@@ -40,10 +40,10 @@ header{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 8
 .upd{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
 .ibtn{border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;width:34px;height:34px;display:grid;place-items:center;cursor:pointer;flex:none}
 .ibtn svg{width:16px;height:16px}.ibtn.spin svg{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
-.themes{display:flex;gap:8px;align-items:center;padding:0 0 10px;overflow-x:auto;scrollbar-width:none}
+.themes{display:flex;gap:6px;align-items:center;padding:0 0 10px;overflow-x:auto;scrollbar-width:none}
 .themes::-webkit-scrollbar{display:none}
-.th{display:flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:6px 11px 6px 7px;font:600 12px/1 "Space Grotesk",sans-serif;cursor:pointer;white-space:nowrap}
-.th i{width:16px;height:16px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.th{display:flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:5px 9px 5px 5px;font:600 11.5px/1 "Space Grotesk",sans-serif;cursor:pointer;white-space:nowrap;flex:none}
+.th i{width:14px;height:14px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
 .th[aria-pressed="true"]{border-color:var(--acc);box-shadow:0 0 0 2px var(--neon-a)}
 .tabs{position:sticky;top:calc(105px + env(safe-area-inset-top));z-index:9;display:flex;gap:6px;padding:4px;margin:16px 0 0;background:var(--paper);border:1px solid var(--line);border-radius:14px}
 .tabs button{flex:1;border:0;background:transparent;color:var(--ink2);font:600 14px/1 "Space Grotesk",sans-serif;padding:11px 6px;border-radius:10px;cursor:pointer}
@@ -300,10 +300,12 @@ function renderPeriod() {
   $('#kpis').innerHTML = K.map(([k, l, f]) => { const v = t[k], c = pct(+v, +p[k]); const d = (c == null || !has) ? '' : `<span class="delta ${c > 0 ? 'up' : c < 0 ? 'down' : ''}">${c > 0 ? '▲' : c < 0 ? '▼' : '•'} ${Math.abs(c)}% <small>${PER[P][2]}</small></span>`; return `<div class="card kpi"><div class="l">${l}</div><div class="v">${v == null ? '–' : f ? f(+v) : fmt(v)}</div>${d}</div>`; }).join('');
   const rt = D.realtime || {}, live = (P === 'today' && !(per.countries || []).length);
   const ctry = live ? (rt.countries || []) : (per.countries || []);
-  bars('#countries', ctry, 'activeUsers', r => `<span class="flag">${flag(r.countryId || NAME2CC[r.country])}</span>${esc(r.country)}`, 'var(--acc)', 10);
-  bars('#regions', per.regions, 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(r.region === '(not set)' ? 'Unknown region' : r.region)} <small>${esc(r.country)}</small>`, 'var(--acc2)', 8);
-  bars('#cities', (per.cities && per.cities.length) ? per.cities : (live ? rt.cities : []), 'activeUsers', r => `<span class="flag">${flag(r.countryId || 'AE')}</span>${esc(r.city === '(not set)' ? 'Unknown city' : r.city)}`, 'var(--acc3)', 8);
-  bars('#languages', per.languages, 'activeUsers', r => `<span class="flag">${LANGFLAG[(r.languageCode || '').slice(0, 2).toLowerCase()] || '🗣️'}</span>${esc(r.language)}`, 'var(--acc4)', 8);
+  bars('#countries', ctry, 'activeUsers', r => `<span class="flag">${flag(r.countryId || NAME2CC[r.country])}</span>${esc(r.country || 'Unknown country')}`, 'var(--acc)', 10);
+  const unk = v => !v || v === '(not set)';
+  bars('#regions', per.regions, 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(unk(r.region) ? 'Unknown region' : r.region)} <small>${esc(r.country || '')}</small>`, 'var(--acc2)', 8);
+  bars('#cities', (per.cities && per.cities.length) ? per.cities : (live ? rt.cities : []), 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(unk(r.city) ? 'Unknown city' : r.city)}`, 'var(--acc3)', 8);
+  const lg = {}; (per.languages || []).forEach(r => { const k = r.language || 'Unknown'; lg[k] = lg[k] || { language: k, languageCode: r.languageCode, activeUsers: 0 }; lg[k].activeUsers += +r.activeUsers || 0; });
+  bars('#languages', Object.values(lg).sort((a, b) => b.activeUsers - a.activeUsers), 'activeUsers', r => `<span class="flag">${LANGFLAG[(r.languageCode || '').slice(0, 2).toLowerCase()] || '🗣️'}</span>${esc(r.language)}`, 'var(--acc4)', 8);
   const pg = {}; (per.pages || []).forEach(r => { const m = (r.pagePath || '/').match(/^\/(fa|ar|ru|es|it|zh|ja|de|fr|privacy)\//); const k = m ? '/' + m[1] + '/' : '/'; pg[k] = (pg[k] || 0) + (+r.screenPageViews || 0); });
   bars('#pages', Object.entries(pg).map(([k, v]) => ({ k, v })).sort((a, b) => b.v - a.v), 'v', r => `<span class="flag">${(PAGE[r.k] || ['📄'])[0]}</span>${esc((PAGE[r.k] || [0, r.k])[1])}`, 'var(--acc)', 10);
   const ev = Object.fromEntries((per.events || []).map(e => [e.eventName, +e.eventCount]));
