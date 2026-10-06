@@ -258,7 +258,12 @@ function bars(sel, rows, val, label, color, limit = 8, share = true) {
 
 function lineChart(rows) {
   const plot = $('#plot'); plot.querySelectorAll('svg,.ch-empty').forEach(n => n.remove());
-  if (!rows || rows.length < 2) { plot.insertAdjacentHTML('beforeend', '<div class="ch-empty">The daily chart starts after Google finishes the first full days of data (from 7–8 Oct).</div>'); $('#dayTotal').textContent = ''; $('#ax0').textContent = $('#ax1').textContent = ''; return; }
+  if (!rows || !rows.length) { plot.insertAdjacentHTML('beforeend', '<div class="ch-empty">No visits recorded yet.</div>'); $('#dayTotal').textContent = ''; $('#ax0').textContent = $('#ax1').textContent = ''; return; }
+  if (rows.length < 3) {   // first days: show simple glowing columns until there is enough history for a line
+    const nn = getComputedStyle(document.documentElement).getPropertyValue('--neon').trim(), mx = Math.max(...rows.map(r => +r.activeUsers || 0), 1);
+    const lab1 = s => new Date(s.slice(0, 4) + '-' + s.slice(4, 6) + '-' + s.slice(6)).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    plot.insertAdjacentHTML('afterbegin', `<div class="ch-empty" style="display:flex;align-items:flex-end;justify-content:center;gap:28px;padding-bottom:4px">${rows.map(r => `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end"><b style="font:700 26px/1 Rajdhani,sans-serif;color:#fff">${fmt(r.activeUsers)}</b><i style="display:block;width:46px;height:${Math.max(8, (+r.activeUsers || 0) / mx * 110)}px;border-radius:8px 8px 3px 3px;background:linear-gradient(${nn},transparent);box-shadow:0 0 18px ${nn}"></i><span style="font-size:11px">${lab1(r.date)}</span></div>`).join('')}</div>`);
+    $('#dayTotal').textContent = fmt(rows.reduce((a, r) => a + (+r.activeUsers || 0), 0)) + ' total'; $('#ax0').textContent = 'The line chart appears from day 3'; $('#ax1').textContent = ''; return; }
   const neon = getComputedStyle(document.documentElement).getPropertyValue('--neon').trim();
   const W = 600, H = 180, Pd = 8, ys = rows.map(r => +r.activeUsers || 0), max = Math.max(...ys, 1);
   const x = i => Pd + (W - 2 * Pd) * i / (rows.length - 1), y = v => H - 10 - (H - 30) * v / max;
@@ -300,10 +305,10 @@ function renderPeriod() {
   $('#kpis').innerHTML = K.map(([k, l, f]) => { const v = t[k], c = pct(+v, +p[k]); const d = (c == null || !has) ? '' : `<span class="delta ${c > 0 ? 'up' : c < 0 ? 'down' : ''}">${c > 0 ? '▲' : c < 0 ? '▼' : '•'} ${Math.abs(c)}% <small>${PER[P][2]}</small></span>`; return `<div class="card kpi"><div class="l">${l}</div><div class="v">${v == null ? '–' : f ? f(+v) : fmt(v)}</div>${d}</div>`; }).join('');
   const rt = D.realtime || {}, live = (P === 'today' && !(per.countries || []).length);
   const ctry = live ? (rt.countries || []) : (per.countries || []);
-  bars('#countries', ctry, 'activeUsers', r => `<span class="flag">${flag(r.countryId || NAME2CC[r.country])}</span>${esc(r.country || 'Unknown country')}`, 'var(--acc)', 10);
+  bars('#countries', ctry, 'activeUsers', r => `<span class="flag">${flag(r.countryId || NAME2CC[r.country])}</span>${esc(r.country || 'Location not detected yet')}`, 'var(--acc)', 10);
   const unk = v => !v || v === '(not set)';
-  bars('#regions', per.regions, 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(unk(r.region) ? 'Unknown region' : r.region)} <small>${esc(r.country || '')}</small>`, 'var(--acc2)', 8);
-  bars('#cities', (per.cities && per.cities.length) ? per.cities : (live ? rt.cities : []), 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(unk(r.city) ? 'Unknown city' : r.city)}`, 'var(--acc3)', 8);
+  bars('#regions', per.regions, 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(unk(r.region) ? 'Location not detected yet' : r.region)} <small>${esc(r.country || '')}</small>`, 'var(--acc2)', 8);
+  bars('#cities', (per.cities && per.cities.length) ? per.cities : (live ? rt.cities : []), 'activeUsers', r => `<span class="flag">${flag(r.countryId)}</span>${esc(unk(r.city) ? 'Location not detected yet' : r.city)}`, 'var(--acc3)', 8);
   const lg = {}; (per.languages || []).forEach(r => { const k = r.language || 'Unknown'; lg[k] = lg[k] || { language: k, languageCode: r.languageCode, activeUsers: 0 }; lg[k].activeUsers += +r.activeUsers || 0; });
   bars('#languages', Object.values(lg).sort((a, b) => b.activeUsers - a.activeUsers), 'activeUsers', r => `<span class="flag">${LANGFLAG[(r.languageCode || '').slice(0, 2).toLowerCase()] || '🗣️'}</span>${esc(r.language)}`, 'var(--acc4)', 8);
   const pg = {}; (per.pages || []).forEach(r => { const m = (r.pagePath || '/').match(/^\/(fa|ar|ru|es|it|zh|ja|de|fr|privacy)\//); const k = m ? '/' + m[1] + '/' : '/'; pg[k] = (pg[k] || 0) + (+r.screenPageViews || 0); });
@@ -311,10 +316,10 @@ function renderPeriod() {
   const ev = Object.fromEntries((per.events || []).map(e => [e.eventName, +e.eventCount]));
   if (P === 'today') (rt.events || []).forEach(e => { if (!(e.eventName in ev)) ev[e.eventName] = +e.eventCount; });
   $('#acts').innerHTML = EVT.map(([k, l, ic]) => `<div class="card act"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">${ic}</svg></span><span><div class="v">${fmt(ev[k] || 0)}</div><div class="l">${l}</div></span></div>`).join('');
-  bars('#channels', per.channels, 'sessions', r => esc(r.sessionDefaultChannelGroup), 'var(--acc3)', 8);
-  bars('#sources', per.sources, 'sessions', r => esc(r.sessionSource === '(direct)' ? 'Direct (typed / saved link)' : r.sessionSource), 'var(--acc2)', 8);
+  bars('#channels', per.channels, 'sessions', r => esc(r.sessionDefaultChannelGroup === 'Unassigned' ? 'Not identified yet' : r.sessionDefaultChannelGroup), 'var(--acc3)', 8);
+  bars('#sources', per.sources, 'sessions', r => esc(r.sessionSource === '(direct)' ? 'Direct (typed / saved link)' : unk(r.sessionSource) ? 'Not identified yet' : r.sessionSource), 'var(--acc2)', 8);
   donut((per.devices && per.devices.length) ? per.devices : (live ? rt.devices : []));
-  bars('#newret', per.newret, 'activeUsers', r => r.newVsReturning === 'new' ? '✨ New visitors' : r.newVsReturning === 'returning' ? '🔁 Came back' : esc(r.newVsReturning), 'var(--acc)', 4);
+  bars('#newret', per.newret, 'activeUsers', r => r.newVsReturning === 'new' ? '✨ New visitors' : r.newVsReturning === 'returning' ? '🔁 Came back' : '❔ Not identified yet', 'var(--acc)', 4);
 }
 
 function render(D) {
