@@ -217,6 +217,10 @@ h2::before{content:"";width:6px;height:22px;border-radius:3px;background:linear-
 .sn .tr i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--acc),var(--acc2));box-shadow:0 0 10px var(--neon-a);transition:width 1s cubic-bezier(.2,.7,.2,1)}
 .drop{display:inline-block;margin-inline-start:6px;padding:2px 7px;border-radius:999px;font:700 10.5px/1.4 "Space Grotesk",sans-serif;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);vertical-align:middle}
 
+.golive{position:relative;z-index:1;margin-top:14px;display:grid;gap:6px}
+.golive button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;border-radius:999px;padding:11px 16px;font:600 13px/1 "Space Grotesk",sans-serif;cursor:pointer}
+.golive small{color:rgba(242,233,228,.6);font-size:11.5px}
+.live.on .live-top #liveLbl{color:var(--neon)}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}.wedge{transform:none}.ch-plot .draw{stroke-dashoffset:0}.ch-plot .area{opacity:1}.donut .arc{stroke-dashoffset:0}}
 </style>
 </head>
@@ -232,10 +236,11 @@ h2::before{content:"";width:6px;height:22px;border-radius:3px;background:linear-
 
 <main class="wrap">
   <section class="live"><span class="rings" aria-hidden="true"></span><span class="radar" aria-hidden="true"></span>
-    <div class="live-top"><span><span class="dot"></span>Live · last 30 minutes</span><span id="liveTime"></span></div>
+    <div class="live-top"><span id="liveLbl"><span class="dot"></span>Last 30 minutes</span><span id="liveTime"></span></div>
     <div class="live-row"><div class="live-num" id="liveNum">–</div><div class="live-cap">people on<br>thirdskin.online<br>right now</div></div>
     <div class="live-mini"><div class="lm"><b id="lmToday">–</b><span>visitors today</span></div><div class="lm"><b id="lm7">–</b><span>last 7 days</span></div><div class="lm"><b id="lm30">–</b><span>last 30 days</span></div></div>
     <div class="live-tags" id="liveTags"></div>
+    <div class="golive" id="goLiveBox" hidden><button type="button" id="goLive"><span class="dot"></span>Go live · update every 20 seconds</button><small id="goLiveNote">Sign in once with the Google account that owns Google Analytics. Read-only; nothing is stored on any server.</small></div>
   </section>
 
   <div class="tabs" role="tablist" id="tabs">
@@ -470,16 +475,26 @@ function renderPeriod() {
 function render(D) {
   DATA = D; $('#upd').textContent = 'Updated ' + ago(D.updated);
   const rt = D.realtime || {}, per = D.periods || {};
-  countUp($('#liveNum'), +rt.active || 0);
-  $('#liveTime').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' }) + ' Dubai';
+  if (!LIVE.on) drawLive(rt, D.updated);
   const tv = k => { const v = ((per[k] || {}).totals || {}).activeUsers; return v == null ? '–' : fmt(v); };
   const tn = k => ((per[k] || {}).totals || {}).activeUsers; [['#lmToday', 'today'], ['#lm7', 'd7'], ['#lm30', 'd30']].forEach(([s, k]) => countUp($(s), tn(k) == null ? null : +tn(k)));
   [['#lm7', -7], ['#lm30', -30]].forEach(([s, n]) => { const box = $(s).parentNode; box.querySelector('svg')?.remove(); box.insertAdjacentHTML('beforeend', spark((D.daily || []).slice(n).map(r => +r.activeUsers || 0), cssv('--neon'), 26)); });
-  const tags = [...(rt.countries || []).map(r => `${flag(r.countryId || NAME2CC[r.country])} ${esc(r.country)} <b>${r.activeUsers}</b>`), ...(rt.cities || []).filter(r => r.city !== '(not set)').map(r => `📍 ${esc(r.city)} <b>${r.activeUsers}</b>`), ...(rt.devices || []).map(r => `${r.deviceCategory === 'mobile' ? '📱' : r.deviceCategory === 'desktop' ? '💻' : '📟'} ${esc(r.deviceCategory)} <b>${r.activeUsers}</b>`), ...(rt.events || []).filter(e => /lead|whatsapp|sign_up|media_kit/.test(e.eventName)).map(e => `⚡ ${esc(e.eventName.replace(/_/g, ' '))} <b>${e.eventCount}</b>`)];
-  $('#liveTags').innerHTML = tags.length ? tags.map(t => `<span class="tag">${t}</span>`).join('') : '<span class="tag">Nobody on the site this minute</span>';
+  if (!LIVE.on) drawTags(rt);
   renderPeriod();
   lineChart(D.daily);
   clock(D.hours);
+  return renderRest(D);
+}
+const dubaiTime = d => new Date(d).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Dubai' });
+function drawLive(rt, when) {
+  countUp($('#liveNum'), +rt.active || 0);
+  $('#liveTime').textContent = LIVE.on ? 'LIVE · ' + new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Dubai' }) : 'Checked ' + dubaiTime(when) + ' Dubai';
+}
+function drawTags(rt) {
+  const tags = [...(rt.countries || []).map(r => `${flag(r.countryId || NAME2CC[r.country])} ${esc(r.country)} <b>${r.activeUsers}</b>`), ...(rt.cities || []).filter(r => r.city !== '(not set)').map(r => `📍 ${esc(r.city)} <b>${r.activeUsers}</b>`), ...(rt.devices || []).map(r => `${r.deviceCategory === 'mobile' ? '📱' : r.deviceCategory === 'desktop' ? '💻' : '📟'} ${esc(r.deviceCategory)} <b>${r.activeUsers}</b>`), ...(rt.events || []).filter(e => /lead|whatsapp|sign_up|media_kit/.test(e.eventName)).map(e => `⚡ ${esc(e.eventName.replace(/_/g, ' '))} <b>${e.eventCount}</b>`)];
+  $('#liveTags').innerHTML = tags.length ? tags.map(t => `<span class="tag">${t}</span>`).join('') : '<span class="tag">Nobody on the site this minute</span>';
+}
+function renderRest(D) {
   const s = D.social || {};
   $('#socAsOf').textContent = 'From Meta professional dashboards · as of ' + (s.asOf || '');
   $('#social').innerHTML = `<div class="card"><h3>📸 Instagram</h3><div class="v">${short(s.ig || 0)}</div><div class="l">followers</div><div class="g">+${short(s.igGain30 || 0)} in 30 days</div><div class="l">${short(s.igViews30 || 0)} views / 30 days</div></div><div class="card"><h3>👍 Facebook</h3><div class="v">${short(s.fb || 0)}</div><div class="l">followers</div><div class="g">+${short(s.fbGain28 || 0)} in 28 days</div><div class="l">${short(s.fbViews28 || 0)} views / 28 days</div></div>`;
@@ -489,6 +504,58 @@ function render(D) {
   $('#health').innerHTML = (site.checks || []).map(c => `<div class="row"><span>${esc((PAGE[c.path] || [0, c.path])[1])}</span><span>${c.status === 200 ? pill('ok', c.ms + ' ms') : pill('bad', 'Error ' + c.status)}</span></div>`).join('');
   $('#setup').innerHTML = (D.setup || []).map(x => `<div class="row"><span>${esc(x.name)}</span>${pill(x.state, esc(x.label))}</div>`).join('');
   reveal();
+}
+
+
+// ---------- LIVE mode: the page asks Google Analytics directly (Google sign-in, read-only) ----------
+const GOOGLE_CLIENT_ID = '';   // OAuth web client ID (public, not a secret). Empty = live button hidden.
+const GA_PROP = '557594788';
+const LIVE = { on: false, token: null, exp: 0, timer: null, tc: null };
+function gaRows(d) { const dh = (d.dimensionHeaders || []).map(h => h.name), mh = (d.metricHeaders || []).map(h => h.name);
+  return (d.rows || []).map(r => { const o = {}; (r.dimensionValues || []).forEach((v, i) => o[dh[i]] = v.value); (r.metricValues || []).forEach((v, i) => o[mh[i]] = +v.value); return o; }); }
+async function gaCall(kind, body) {
+  const r = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${GA_PROP}:${kind}`, { method: 'POST', headers: { Authorization: 'Bearer ' + LIVE.token, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (r.status === 401 || r.status === 403) { stopLive('Google sign-in expired. Tap Go live again.'); throw new Error('auth'); }
+  return gaRows(await r.json());
+}
+const rtq = (dims, mets = ['activeUsers']) => gaCall('runRealtimeReport', { dimensions: dims.map(n => ({ name: n })), metrics: mets.map(n => ({ name: n })), limit: 50 });
+async function liveTick() {
+  if (!LIVE.on || Date.now() > LIVE.exp) return stopLive('Live session ended after 1 hour. Tap Go live again.');
+  try {
+    const [countries, cities, devices, events, tot] = await Promise.all([rtq(['country', 'countryId']), rtq(['city']), rtq(['deviceCategory']), rtq(['eventName'], ['eventCount']), rtq([])]);
+    const rt = { countries, cities, devices, events, active: tot[0] ? tot[0].activeUsers : 0 };
+    drawLive(rt); drawTags(rt);
+    if (!liveTick.n || liveTick.n % 3 === 0) {   // every ~minute: today's totals
+      const t = await gaCall('runReport', { dateRanges: [{ startDate: 'today', endDate: 'today' }], metrics: [{ name: 'activeUsers' }, { name: 'screenPageViews' }] });
+      if (t[0]) { countUp($('#lmToday'), t[0].activeUsers); if (DATA && DATA.periods && DATA.periods.today) { DATA.periods.today.totals = Object.assign({}, DATA.periods.today.totals, t[0]); if (P === 'today') renderPeriod(); } }
+    }
+    liveTick.n = (liveTick.n || 0) + 1;
+    $('#upd').textContent = 'Live';
+  } catch (e) { if (e.message !== 'auth') $('#goLiveNote').textContent = 'Could not reach Google Analytics just now, retrying…'; }
+}
+function startLive(tok) {
+  LIVE.token = tok.access_token; LIVE.exp = Date.now() + (tok.expires_in || 3600) * 1000 - 60000; LIVE.on = true;
+  try { sessionStorage.setItem('tsi-live', JSON.stringify({ t: LIVE.token, e: LIVE.exp })); localStorage.setItem('tsi-live-ok', '1'); } catch (e) {}
+  document.querySelector('.live').classList.add('on'); $('#goLiveBox').hidden = true;
+  liveTick(); clearInterval(LIVE.timer); LIVE.timer = setInterval(liveTick, 20000);
+}
+function stopLive(msg) {
+  LIVE.on = false; clearInterval(LIVE.timer); document.querySelector('.live').classList.remove('on');
+  try { sessionStorage.removeItem('tsi-live'); } catch (e) {}
+  $('#goLiveBox').hidden = !GOOGLE_CLIENT_ID; if (msg) $('#goLiveNote').textContent = msg;
+  if (DATA) render(DATA);
+}
+function loadGis() { return new Promise((ok, no) => { if (window.google && google.accounts) return ok(); const s = document.createElement('script'); s.src = 'https://accounts.google.com/gsi/client'; s.onload = ok; s.onerror = no; document.head.appendChild(s); }); }
+if (GOOGLE_CLIENT_ID) {
+  $('#goLiveBox').hidden = false;
+  try { const s = JSON.parse(sessionStorage.getItem('tsi-live') || 'null'); if (s && s.e > Date.now()) setTimeout(() => startLive({ access_token: s.t, expires_in: (s.e - Date.now()) / 1000 + 60 }), 300); } catch (e) {}
+  $('#goLive').onclick = async () => {
+    try { await loadGis(); } catch (e) { $('#goLiveNote').textContent = 'Could not load Google sign-in.'; return; }
+    LIVE.tc = LIVE.tc || google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: 'https://www.googleapis.com/auth/analytics.readonly',
+      callback: t => t && t.access_token ? startLive(t) : ($('#goLiveNote').textContent = 'Sign-in was cancelled.') });
+    let hint = ''; try { hint = localStorage.getItem('tsi-live-ok') ? '' : 'consent'; } catch (e) {}
+    LIVE.tc.requestAccessToken({ prompt: hint });
+  };
 }
 
 $('#tabs').onclick = e => { const b = e.target.closest('button[data-p]'); if (!b) return; P = b.dataset.p; try { localStorage.setItem('tsi-period', P); } catch (er) {} renderPeriod(); reveal(); };
