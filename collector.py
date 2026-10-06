@@ -84,32 +84,64 @@ def social():
             "igViews30": 23500000, "fbViews28": 11000000, "asOf": "4 Oct 2026"}
 
 
-def collect():
-    now = datetime.datetime.now(datetime.timezone.utc)
-    data = {"updated": now.strftime("%Y-%m-%dT%H:%M:%SZ")}
-    data["realtime"] = {
-        "active": sum(r.get("activeUsers", 0) for r in realtime(["country"])),
-        "countries": realtime(["country"]),
-        "cities": realtime(["city"]),
-        "devices": realtime(["deviceCategory"]),
-        "pages": realtime(["unifiedScreenName"], ("activeUsers", "screenPageViews")),
-        "events": realtime(["eventName"], ("eventCount",)),
-        "minutes": realtime(["minutesAgo"]),
+PERIODS = {"today": ("today", "today", "yesterday", "yesterday"),
+           "d7": ("7daysAgo", "today", "14daysAgo", "8daysAgo"),
+           "d30": ("30daysAgo", "today", "60daysAgo", "31daysAgo")}
+TOT = ["activeUsers", "newUsers", "sessions", "screenPageViews", "engagementRate",
+       "averageSessionDuration", "eventCount", "engagedSessions"]
+
+
+def period_jobs(key, start, end, pstart, pend):
+    return {
+        "totals": (lambda: (report([], TOT, start, end, limit=1) or [{}])[0]),
+        "prev": (lambda: (report([], TOT, pstart, pend, limit=1) or [{}])[0]),
+        "countries": (lambda: report(["country", "countryId"], ["activeUsers", "sessions"], start, end, order="activeUsers", limit=30)),
+        "regions": (lambda: report(["region", "country", "countryId"], ["activeUsers"], start, end, order="activeUsers", limit=20)),
+        "cities": (lambda: report(["city", "countryId"], ["activeUsers"], start, end, order="activeUsers", limit=20)),
+        "languages": (lambda: report(["language", "languageCode"], ["activeUsers"], start, end, order="activeUsers", limit=15)),
+        "pages": (lambda: report(["pagePath"], ["screenPageViews", "activeUsers"], start, end, order="screenPageViews", limit=20)),
+        "devices": (lambda: report(["deviceCategory"], ["activeUsers"], start, end, order="activeUsers")),
+        "channels": (lambda: report(["sessionDefaultChannelGroup"], ["sessions"], start, end, order="sessions")),
+        "sources": (lambda: report(["sessionSource"], ["sessions"], start, end, order="sessions", limit=12)),
+        "events": (lambda: report(["eventName"], ["eventCount"], start, end, order="eventCount", limit=40)),
+        "newret": (lambda: report(["newVsReturning"], ["activeUsers"], start, end)),
     }
-    data["t28"] = totals("28daysAgo"); data["tprev28"] = totals("56daysAgo", "29daysAgo")
-    data["t7"] = totals("7daysAgo"); data["tToday"] = totals("today")
-    data["daily"] = sorted(report(["date"], ["activeUsers", "sessions", "screenPageViews"], limit=60, start="45daysAgo"), key=lambda r: r["date"])
-    data["countries"] = report(["country"], ["activeUsers", "sessions"], order="activeUsers", limit=15)
-    data["cities"] = report(["city"], ["activeUsers"], order="activeUsers", limit=12)
-    data["devices"] = report(["deviceCategory"], ["activeUsers"], order="activeUsers")
-    data["channels"] = report(["sessionDefaultChannelGroup"], ["sessions", "engagementRate"], order="sessions")
-    data["sources"] = report(["sessionSource"], ["sessions"], order="sessions", limit=12)
-    data["pages"] = report(["pagePath"], ["screenPageViews", "activeUsers"], order="screenPageViews", limit=20)
-    data["events"] = report(["eventName"], ["eventCount"], order="eventCount", limit=40)
-    data["newret"] = report(["newVsReturning"], ["activeUsers"])
-    data["hours"] = report(["hour"], ["activeUsers"], limit=24)
-    data["site"] = site_health()
-    data["social"] = social()
+
+
+def collect():
+    from concurrent.futures import ThreadPoolExecutor
+    now = datetime.datetime.now(datetime.timezone.utc)
+    data = {"updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "periods": {}}
+    jobs = {}
+    for k, (a, b, c, d) in PERIODS.items():
+        for name, fn in period_jobs(k, a, b, c, d).items():
+            jobs[(k, name)] = fn
+    jobs[("x", "daily")] = lambda: sorted(report(["date"], ["activeUsers", "sessions", "screenPageViews"], limit=60, start="45daysAgo"), key=lambda r: r["date"])
+    jobs[("x", "hours")] = lambda: report(["hour"], ["activeUsers"], "30daysAgo", "today", limit=24)
+    jobs[("rt", "countries")] = lambda: realtime(["country", "countryId"])
+    jobs[("rt", "cities")] = lambda: realtime(["city"])
+    jobs[("rt", "devices")] = lambda: realtime(["deviceCategory"])
+    jobs[("rt", "pages")] = lambda: realtime(["unifiedScreenName"], ("activeUsers", "screenPageViews"))
+    jobs[("rt", "events")] = lambda: realtime(["eventName"], ("eventCount",))
+    jobs[("x", "site")] = site_health
+    jobs[("x", "social")] = social
+    with ThreadPoolExecutor(max_workers=10) as ex:
+        futs = {key: ex.submit(fn) for key, fn in jobs.items()}
+        res = {}
+        for key, f in futs.items():
+            try:
+                res[key] = f.result(timeout=150)
+            except Exception:
+                res[key] = [] if key[1] not in ("totals", "prev", "site", "social") else {}
+    for k in PERIODS:
+        data["periods"][k] = {name: res[(k, name)] for name in period_jobs(k, *PERIODS[k]).keys()}
+    rt = {n: res[("rt", n)] for n in ("countries", "cities", "devices", "pages", "events")}
+    rt["active"] = sum(r.get("activeUsers", 0) for r in rt["countries"])
+    data["realtime"] = rt
+    data["daily"] = res[("x", "daily")]; data["hours"] = res[("x", "hours")]
+    data["site"] = res[("x", "site")]; data["social"] = res[("x", "social")]
+    # backwards-compatible keys
+    data["t28"] = data["periods"]["d30"]["totals"]
     site = data["site"]
     data["setup"] = [
         {"name": "Website online", "state": "ok" if site.get("up") else "bad", "label": "All pages OK" if site.get("up") else "Problem"},
@@ -140,4 +172,4 @@ def publish(data):
 
 DATA = collect()
 RESULT = publish(DATA)
-print("published:", RESULT, "| active now:", DATA["realtime"]["active"], "| 28d users:", DATA["t28"].get("activeUsers"))
+print("published:", RESULT, "| active now:", DATA["realtime"]["active"], "| 30d users:", DATA["t28"].get("activeUsers"))
